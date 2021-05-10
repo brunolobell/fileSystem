@@ -1,3 +1,19 @@
+import os
+
+# Function to create a folder
+def createFolder(folderName, currentFolder):
+  fullFolderName = currentFolder.getPath() + folderName
+  if 'api/root' not in os.path.abspath(fullFolderName):
+    print("The home directory must be '/'!")
+    return
+  try:
+    os.makedirs(fullFolderName)
+  except:
+    print("File/directory {} exists in {}!".format(folderName, currentFolder.getName()))
+    return
+  return Folder(folderName, fullFolderName)
+
+# Class to represent a folder
 class Folder:
   def __init__(self, folderName, folderPath, folderSize = 0, folderList = []):
     self.folders = folderList
@@ -15,7 +31,7 @@ class Folder:
   
   # Function to take the folder path
   def getPath(self):
-    return self.path[7:]
+    return self.path
 
   # Function to take the folder size
   def getSize(self):

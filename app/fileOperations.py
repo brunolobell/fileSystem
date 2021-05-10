@@ -1,3 +1,5 @@
+from folderOperations import *
+
 # Class to represent a file
 class File:
   def __init__(self, fileName, filePath, fileSize = 0):
@@ -47,3 +49,27 @@ class File:
     except Exception as err:
       print("Error: {}".format(str(err)))
       return -1
+
+
+# Function to create a file
+def createFile(fileName, currentFolder):
+  inPath = currentFolder.getItemsList()
+  index = 0
+  for letter in range(len(fileName)-1, -1, -1):
+    if fileName[letter] == '/':
+      index = letter + 1
+      break
+  if index > 0:
+    print('FILENAME: ', fileName[:index], '\n')
+    folder = createFolder(fileName[:index], currentFolder)
+    if folder == None:
+      return
+  if fileName in inPath:
+    print("File/directory {} exists in {}!".format(fileName, currentFolder.getPath()))
+    return
+  fullFileName = currentFolder.getPath() + fileName
+  newFile = open(fullFileName, 'w')
+  newFile.close()
+  if index == 0:
+    currentFolder.insertItem(fileName)
+  return File(fileName[index:], fullFileName)
