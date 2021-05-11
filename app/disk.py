@@ -2,6 +2,8 @@ import ast
 import math
 import os
 
+from .externalFileOperations import *
+
 # 1 MB = 10^3 KB = 10^6 B 
 # Disk Size in MBs
 diskSize = os.getenv('DISK_SIZE', 128)
@@ -16,65 +18,71 @@ class Disk:
     self.disk = [0] * self.sizeDisk
     self.createDiskMemory()
 
-  # Function to create 2 files that represent the disk
-  # A binary disk and a content disk  
+  # Function to create a file that represent the disk 
   def createDiskMemory(self):
     serviceFiles = os.listdir('../service')
-    if len(serviceFiles) == 0:
-      vm = open('../service/VirtualMemory', 'w')
+    if len(serviceFiles) <= 1:
       vm.write(str(self.disk))
-      vm.close()
-      vmc = open('../service/VirtualMemoryContest', 'w')
-      vmc.close()
     else:
-      vm = open('../service/VirtualMemory', 'r')
-      self.disk = ast.literal_eval(vm.read())
-      vm.close()
+      self.disk = createExtenalFile()
 
-  # Function to alloc positions in the Byte Map
-  def allocPositionsByteMap(self):
-    for position in range(0, len(self.disk), blockSize):
+  # Alloc new position
+  def allocPosition(self):
+    for position in range(len(self.disk)):
       if self.disk[position] == 0:
         self.disk[position] = 1
         return position
-    print("The file is larger than the available space!")
+    print("Don't have more positions to allocate new blocks!")
     return -1
 
-  def allocPositions(self):
-    for position in range(0, len(self.disk), blockSize):
-      if self.disk[position] == 0:
-        self.disk[position] = 1
-        return position
-    print("The file is larger than the available space!")
-    return -1
-
-  # Function to disk release
+  # Function to free a position in disk
   def free(self, position):
     if self.disk[position] == 1:
       self.disk[position] = 0
     else:
       print("The disk position {} is free!".format(position))
 
+  # Function to free a disk
+  def freeAll(self):
+    self.disk = [0] * (self.sizeDisk / blockSize)
 
+
+# Class to represent a block
 class Block:
-  def __init__(self, inode, fileSlice):
+  def __init__(self, inode):
     self.full = False
     self.blockList = [None] * blockSize
-    self.inode = inode
-    self.file = fileSlice
-    self.newBlock()
+    self.blockList[0] = inode
 
-  # Create a new block
-  def newData(self):
-    self.blockList[0] = self.inode
-    
+  # Add data in a block
+  def add(self, data):
+    if data.getSize() > (blockSize - 1):
+      self.full = True
+      finalPosition = blockSize - 2
+      for index in range(1, finalPosition):
+        self.blockList[index] = 1
+    else:
+      finalPosition = -1
+      for index in range(1, data.getSize()):
+        self.blockList[index] = 1
+    return finalPosition
+  
+  # Free the block
+  def free(self):
+    self.blockList = [None] * blockSize
+
+  # Remove a slice of block
+  def removeSlice(self, position):
+    self.blockList[position] = None
+
 
 # Class to represent an inode
 class Inode:
-  def __init__(self, blockAddr, file, disk):
+  def __init__(self, blockAddr, fileName, filePath, fileSize = 0):
     self.blocksAddr = blockAddr
-    self.file = file
-    self.disk = disk
+    self.fileName = fileName
+    self.filePath = filePath
+    self.fileSize = fileSize
 
   # Function to take the blocks addr
   def getBlocksAddr(self):
@@ -82,13 +90,23 @@ class Inode:
 
   # Function to take the blocks addr
   def getInode(self):
-    return {'file': {'name': self.fileName, 'path': self.filePath, 'size': self.fileSize, 'Type': self.fileType}, 'blocks': self.blocks}
-  
+    return {'file': {'name': self.fileName, 'path': self.filePath, 'size': self.fileSize}, 'blocks': self.blocks}
+
   # Function to insert the blocks addr
-  def insertBlocks(self):
-    startPosition, numberBlocks = self.disk.allocPositions(self.file.size)
-    self.blocksAddr.append(startPosition)
+  def insertBlocks(self, position):
+    self.blocksAddr.append(position)
 
   # Function to change a block addr
   def setBlocks(self, position, newAddr):
     self.blocks[position] = newAddr
+
+  # Change a data file
+  def setFileData(self, dataType, data):
+    if dataType == 'name':
+      self.fileName = data
+    elif dataType == 'path':
+      self.filePath = data
+    elif dataType == 'size':
+      self.fileSize = data
+    else:
+      print("DataType {} not found!".format(dataType))
