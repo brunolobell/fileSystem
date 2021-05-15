@@ -1,28 +1,52 @@
 import os
 
+# Function to take currentFolder
+def positionStackFolder(path, pathStack):
+  normalPath = os.path.normpath(path)
+  listPath = normalPath.split('/')
+  if '..' not in normalPath:
+    return 0
+  
+  pathPosition = 0
+  for p in listPath:
+    if p != '..' or pathPosition == len(pathStack) -1:
+      break
+    pathPosition += 1
+  return pathPosition
+
 # Function to create a folder
-def createFolder(folderName, currentFolder):
-  fullFolderName = currentFolder.getPath() + folderName
-  if 'api/root' not in os.path.abspath(fullFolderName):
-    print("The home directory must be '/'!")
+def createFolder(folderName, stackFolder, diskJSON):
+  normalPath = os.path.normpath(folderName)
+  position = positionStackFolder(normalPath, stackFolder)
+  currentFolder = stackFolder[-(position + 1)] 
+  listItems = currentFolder.getItemsDict()
+  if normalPath == '.' or normalPath == '..' or normalPath in listItems.keys():
+    print("File/directory {} exists in {}!".format(normalPath, currentFolder.getName()))
     return
-  try:
-    os.makedirs(fullFolderName)
-  except:
-    print("File/directory {} exists in {}!".format(folderName, currentFolder.getName()))
-    return
-  return Folder(folderName, fullFolderName)
+  listFolders = normalPath.split('/')
+  if listFolders[0] == '':
+    currentFolder = stackFolder[0]
+  
+  for folder in listFolders:
+    listItems = currentFolder.getItemsDict()
+    if folder != '' and folder != '..':
+      if folder in listItems.keys():
+        currentFolder = listItems[folder]
+      else:
+        currentFolder.insertItem(folder, Folder(folder, currentFolder.getPath() + '/' + folder))
+        currentFolder = currentFolder.getItemsDict[folder]
+
 
 # Class to represent a folder
 class Folder:
-  def __init__(self, folderName, folderPath, folderSize = 0, folderList = []):
-    self.folders = folderList
+  def __init__(self, folderName, folderPath, folderSize = 0, folderDict = {}):
+    self.folders = folderDict
     self.name = folderName
     self.path = folderPath
     self.size = folderSize
 
   # Function to take the items list in this folder
-  def getItemsList(self):
+  def getItemsDict(self):
     return self.folders
 
   # Function to take the folder name
@@ -38,8 +62,8 @@ class Folder:
     return self.size
 
   # Function to insert a item in this folder
-  def insertItem(self, newItem):
-    self.folders.append(newItem)
+  def insertItem(self, name, newItem):
+    self.folders[name] = newItem
 
   # Function to remove a fitem of this folder
   def removeFolder(self, itemPosition):

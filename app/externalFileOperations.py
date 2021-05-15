@@ -1,10 +1,10 @@
 import ast
-from .disk import Block, Inode
+from .disk import Block, Inode, Block
 
 # Load the disk file
 def loadExternalFile():
   file = open('../service/VirtualMemory', 'r')
-  fileRead = file.readline()
+  fileRead = file.readline()[:-1]
   file.close()
   return ast.literal_eval(fileRead)
 

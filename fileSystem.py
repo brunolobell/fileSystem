@@ -1,15 +1,20 @@
 import os
-from fileOperations import *
-from folderOperations import *
-from disk import Disk
+from .app.fileOperations import *
+from .app.folderOperations import *
+from .app.disk import Disk, Inode, Block
 
 # Commands to pass in terminal
-def terminalCommands(command):
-  if command == 'touch':
-    pass
+def terminalCommands(command, disk, currentFolder):
+  if command[:5] == 'touch':
+    newFile = createFile(command[6:], currentFolder)
+    position = disk.allocPosition()
+    newInode = Inode(position, command[6:], currentFolder.getPath())
+    newBlock = Block(newInode)
+    newBlock.add(File)
+    disk.insertBlock(newBlock)
   elif command == 'rm':
     pass
-  elif command == 'echo':
+  elif '"' in command or '"' in command:
     pass
   elif command == 'cat':
     pass
@@ -31,6 +36,7 @@ def terminalCommands(command):
 # Main
 def fileSystemMain():
   memory = Disk()
-  blocks = []
+  
+  
 
 fileSystemMain()

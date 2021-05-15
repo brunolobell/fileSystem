@@ -1,4 +1,3 @@
-from .disk import Block, Inode
 from .folderOperations import *
 
 # Class to represent a file
@@ -53,7 +52,7 @@ class File:
 
 
 # Function to create a file
-def createFile(fileName, currentFolder, disk):
+def createFile(fileName, currentFolder):
   inPath = currentFolder.getItemsList()
   index = 0
   for letter in range(len(fileName)-1, -1, -1):
@@ -71,7 +70,4 @@ def createFile(fileName, currentFolder, disk):
   fullFileName = currentFolder.getPath() + fileName
   if index == 0:
     currentFolder.insertItem(fileName)
-  position = disk.allocPosition()
-  newInode = Inode(position, fileName[index:], currentFolder.getPath())
-  newBlock = Block(newInode)
-  return File(fileName[index:], fullFileName), newBlock
+  return File(fileName[index:], fullFileName)
