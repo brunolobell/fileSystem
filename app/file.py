@@ -41,7 +41,7 @@ class File:
 
   # Function to change the file size
   def setSize(self, newfileSize):
-    self.size = newfileSize
+    self.size = self.size + newfileSize
 
   # Function to write in the file
   def writeFile(self, text, option = 'a'):

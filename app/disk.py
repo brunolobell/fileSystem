@@ -56,21 +56,20 @@ class Disk:
 # Class to represent a block
 class Block:
   def __init__(self):
-    self.size = blockSize
-    self.byteMap = [0] * blockSize
+    self.size = blockSize - 1
     self.blockList = []
 
   # Add data in a block
-  def add(self, data, lastSize = 0):
-    if (data.getSize() - lastSize) > (self.size - 1):
-      self.size -= (data.getSize() - lastSize)
-      newSize = data.getSize() - blockSize + 1
+  def add(self, newSize, data):
+    if newSize > self.size:
+      self.size = 0
       self.blockList.append(data)
+      currentSize = newSize - self.size
     else:
-      self.size -= (data.getSize() - lastSize)
-      newSize = -1
+      self.size -= newSize
       self.blockList.append(data)
-    return newSize
+      currentSize = 0
+    return currentSize
   
   # Take the bocksList
   def getItems(self):
@@ -85,7 +84,7 @@ class Block:
 # Class to represent an inode
 class Inode:
   def __init__(self, blockAddr, fileName, filePath, fileSize = 0):
-    self.blocksAddr = blockAddr
+    self.blocksAddr = [blockAddr]
     self.fileName = fileName
     self.filePath = filePath
     self.fileSize = fileSize
