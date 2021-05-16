@@ -17,24 +17,23 @@ class Disk:
     self.sizeDisk = diskSize * 1024 * 1024
     self.diskMap = [0] * self.sizeDisk
     self.blocks = []
-    self.createDiskMemory()
-
-  # Function to create a file that represent the disk 
-  def createDiskMemory(self):
-    serviceFiles = os.listdir('../service')
-    if len(serviceFiles) <= 1:
-      self.diskMap = loadExternalFile()
-    else:
-      createExtenalFile(self.diskMap)
 
   # Alloc new position
   def allocPosition(self):
-    for position in range(len(self.disk)):
+    for position in range(len(self.diskMap)):
       if self.diskMap[position] == 0:
         self.diskMap[position] = 1
         return position
     print("Don't have more positions to allocate new blocks!")
     return -1
+
+  # Take the bytemap
+  def getDiskMap(self):
+    return self.diskMap
+  
+  # Take the blocks
+  def getBlocks(self):
+    return self.blocks
 
   # Function to free a position in disk
   def free(self, position):
@@ -54,22 +53,27 @@ class Disk:
 
 # Class to represent a block
 class Block:
-  def __init__(self, inode):
-    self.full = False
-    self.blockList = [None, None]
-    self.blockList[0] = inode
+  def __init__(self, inode = None):
+    self.size = blockSize
+    self.byteMap = [0] * blockSize
+    self.blockList = []
+    if inode != None:
+      self.blockList.append(inode)
 
   # Add data in a block
   def add(self, data, lastSize = 0):
-    if (data.getSize() - lastSize) > (blockSize - 1):
-      self.full = True
+    if (data.getSize() - lastSize) > (self.size - 1):
+      self.size -= (data.getSize() - lastSize)
       newSize = data.getSize() - blockSize + 1
-      self.blockList[1] = data
+      self.blockList.append(data)
     else:
+      self.size -= (data.getSize() - lastSize)
       newSize = -1
-      self.blockList[1] = data
+      self.blockList.append(data)
     return newSize
-
+  
+  def getItems(self):
+    return self.blockList
 
 # Class to represent an inode
 class Inode:

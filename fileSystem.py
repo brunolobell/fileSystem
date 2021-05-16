@@ -1,42 +1,63 @@
 import os
-from .app.fileOperations import *
-from .app.folderOperations import *
-from .app.disk import Disk, Inode, Block
+
+from app.disk import *
+from app.fileOperations import *
+from app.folderOperations import *
+from app.externalFileOperations import *
 
 # Commands to pass in terminal
-def terminalCommands(command, disk, currentFolder):
+def terminalCommands(command, disk, stackFolder):
+  currentFolder = stackFolder[-1]
   if command[:5] == 'touch':
-    newFile = createFile(command[6:], currentFolder)
+    newFile = createFile(command[6:], stackFolder)
     position = disk.allocPosition()
     newInode = Inode(position, command[6:], currentFolder.getPath())
     newBlock = Block(newInode)
-    newBlock.add(File)
+    newBlock.add(newFile)
     disk.insertBlock(newBlock)
-  elif command == 'rm':
+  elif command[:2] == 'rm':
     pass
-  elif '"' in command or '"' in command:
+  elif command[:4] == 'echo':
     pass
-  elif command == 'cat':
+  elif command[:3] == 'cat':
     pass
-  elif command == 'cp':
+  elif command[:2] == 'cp':
     pass
-  elif command == 'mv':
+  elif command[:2] == 'mv':
     pass
-  elif command == 'mkdir':
+  elif command[:5] == 'mkdir':
+    newFolder = createFolder(command[6:], stackFolder)
+    disk.getBlocks()[0].add(newFolder)
+  elif command[:5] == 'rmdir':
     pass
-  elif command == 'rmdir':
+  elif command[:2] == 'cd':
+    openDirectory(command[3:], stackFolder)
+  elif command[:5] == 'touch':
     pass
-  elif command == 'cd':
-    pass
-  elif command == 'mv':
-    pass
+  elif command == 'ls':
+    for el in currentFolder.getItemsDict().keys():
+      print(el, end=' ')
+    print()
   else:
     print("Command {} not found!".format(command))
 
 # Main
 def fileSystemMain():
-  memory = Disk()
-  
-  
+  memory = loadExternalFile()
+  if memory == -1:
+    rootFolder = Folder('root', '/')
+    memory = Disk()
+    writeExternalFile(memory)
+    newBlock = Block()
+    newBlock.add(rootFolder)
+    memory.insertBlock(newBlock)
+    #createByteMap(memory.getDiskMap())
+  # Take root in Disk -> Block -> Folder[0]
+  rootFolder = memory.getBlocks()[0].getItems()[0]
+  stackDirectory = [rootFolder] 
+  while(1):
+    writeExternalFile(memory)
+    command = input('USER@PC:{}$ '.format(stackDirectory[-1].getPath()))
+    terminalCommands(command, memory, stackDirectory)
 
 fileSystemMain()

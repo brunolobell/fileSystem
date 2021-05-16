@@ -1,14 +1,22 @@
 import ast
-from .disk import Block, Inode, Block
+import os
+import pickle
 
-# Load the disk file
+# write an object in the file (VirtualMemory)
+def writeExternalFile(obj):
+  with open('service/VirtualMemory', 'wb') as output:
+    fileDump = pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
+
+# Load the memory file
 def loadExternalFile():
-  file = open('../service/VirtualMemory', 'r')
-  fileRead = file.readline()[:-1]
-  file.close()
-  return ast.literal_eval(fileRead)
+  if len(os.listdir('service')) < 1:
+    return -1 
+  with open('service/VirtualMemory', 'rb') as memory:
+    fileLoad = pickle.load(memory) 
+  return fileLoad
 
-# Create a file to use like a disk
-def createExtenalFile(disk):
-  file = open('../service/VirtualMemory', 'w')
+# Create a file with bytemap
+def createByteMap(disk):
+  file = open('service/VirtualMemory.bmt', 'w')
   file.write(str(disk))
+  file.close()

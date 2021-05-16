@@ -52,8 +52,8 @@ class File:
 
 
 # Function to create a file
-def createFile(fileName, currentFolder):
-  inPath = currentFolder.getItemsList()
+def createFile(fileName, stackFolder):
+  currentFolder = stackFolder[-1]
   index = 0
   for letter in range(len(fileName)-1, -1, -1):
     if fileName[letter] == '/':
@@ -61,13 +61,15 @@ def createFile(fileName, currentFolder):
       break
   if index > 0:
     print('FILENAME: ', fileName[:index], '\n')
-    folder = createFolder(fileName[:index], currentFolder)
-    if folder == None:
-      return
-  if fileName in inPath:
+    currentFolder = createFolder(fileName[:index], stackFolder)
+  inPath = currentFolder.getItemsDict()
+  if fileName[:index] in inPath:
     print("File/directory {} exists in {}!".format(fileName, currentFolder.getPath()))
     return
-  fullFileName = currentFolder.getPath() + fileName
-  if index == 0:
-    currentFolder.insertItem(fileName)
-  return File(fileName[index:], fullFileName)
+  if fileName[0] != '/':
+    fullFileName = currentFolder.getPath() + '/' + fileName[:index]
+  else:
+    fullFileName = currentFolder.getPath() + fileName[:index]
+  newFile = File(fileName[index:], fullFileName)
+  currentFolder.insertItem(fileName[:index], newFile)
+  return newFile
