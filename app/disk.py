@@ -17,6 +17,7 @@ class Disk:
     self.sizeDisk = diskSize * 1024 * 1024
     self.diskMap = [0] * self.sizeDisk
     self.blocks = []
+    self.lastPostion = 0
 
   # Alloc new position
   def allocPosition(self):
@@ -50,15 +51,14 @@ class Disk:
   # Function to insert a block in disk
   def insertBlock(self, block):
     self.blocks.append(block)
+    return self.lastPostion
 
 # Class to represent a block
 class Block:
-  def __init__(self, inode = None):
+  def __init__(self):
     self.size = blockSize
     self.byteMap = [0] * blockSize
     self.blockList = []
-    if inode != None:
-      self.blockList.append(inode)
 
   # Add data in a block
   def add(self, data, lastSize = 0):

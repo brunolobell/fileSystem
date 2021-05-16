@@ -12,7 +12,10 @@ def loadExternalFile():
   if len(os.listdir('service')) < 1:
     return -1 
   with open('service/VirtualMemory', 'rb') as memory:
-    fileLoad = pickle.load(memory) 
+    try:
+      fileLoad = pickle.load(memory) 
+    except EOFError:
+      return -1
   return fileLoad
 
 # Create a file with bytemap

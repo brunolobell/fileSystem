@@ -1,10 +1,15 @@
 # Class to represent a file
 class File:
   def __init__(self, fileName, filePath, fileSize = 0):
+    self.inode = None
     self.name = fileName
     self.path = filePath
     self.size = fileSize
     self.text = ''
+
+  # Function to take the inode file
+  def getInode(self):
+    return self.inode
 
   # Function to take the file name
   def getName(self):
@@ -21,7 +26,11 @@ class File:
   # Function to take the file text
   def getText(self):
     return self.text
-    
+
+  # Function to change the inode
+  def setInode(self, inode):
+    self.inode = inode
+
   # Function to change the file name
   def setName(self, newfileName):
     self.name = newfileName
@@ -35,5 +44,8 @@ class File:
     self.size = newfileSize
 
   # Function to write in the file
-  def writeFile(self, text):
-    self.text = self.text + text
+  def writeFile(self, text, option = 'a'):
+    if option == 'a' and self.text != '':
+      self.text = self.text + '\n' + text
+    else:
+      self.text = text
