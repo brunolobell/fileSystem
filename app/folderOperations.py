@@ -1,6 +1,7 @@
 import os
+from app.folder import Folder
 
-# Function to take currentFolder
+# Function to take number times to unstack
 def positionStackFolder(path, pathStack):
   normalPath = os.path.normpath(path)
   listPath = normalPath.split('/')
@@ -14,19 +15,39 @@ def positionStackFolder(path, pathStack):
     pathPosition += 1
   return pathPosition
 
+# Function to take the current folder
+def currentFolder(pathBase, stackFolder):
+  normalPath = os.path.normpath(pathBase)
+  count = positionStackFolder(normalPath, stackFolder)
+  currentFolder = stackFolder[-(count + 1)]
+  listPath = normalPath.split('/')
+  start = 0
+  if listPath[0] == '':
+    start = 1
+  currentFolder = stackFolder[0]
+  for item in listPath[start:]:
+    listItems = currentFolder.getItemsDict()
+    if item != '':
+      if item in listItems.keys():
+        currentFolder = listItems[item]
+      else:
+        print("{}: No such file or directory".format(item))
+        return -1
+  return currentFolder
+
 # Function to create a folder
 def createFolder(folderName, stackFolder, fromFile = False):
   normalPath = os.path.normpath(folderName)
   position = positionStackFolder(normalPath, stackFolder)
-  currentFolder = stackFolder[-1] 
+  currentFolder = stackFolder[-(position + 1)] 
   listItems = currentFolder.getItemsDict()
-  if normalPath == '.' or normalPath == '..' or normalPath in listItems.keys():
+  if normalPath == '.' or normalPath in listItems.keys():
     print("File/directory {} exists in {}!".format(normalPath, currentFolder.getName()))
     return -1
   listFolders = normalPath.split('/')
   if listFolders[0] == '':
     currentFolder = stackFolder[0]
-  
+  # Separete directories and add in folder
   index = 0
   for folder in listFolders:
     listItems = currentFolder.getItemsDict()
@@ -37,9 +58,10 @@ def createFolder(folderName, stackFolder, fromFile = False):
       if folder in listItems.keys():
         index += 1
         currentFolder = listItems[folder]
-      else: 
-        currentFolder.insertItem(folder, Folder(folder, path))
-        currentFolder = currentFolder.getItemsDict()[folder]
+      else:
+        newFolder = Folder(folder, path)
+        currentFolder.insertItem(folder, newFolder)
+        currentFolder = newFolder
   if index >= len(listFolders) and not fromFile:
     print("File/directory {} exists in {}!".format(normalPath, currentFolder.getName()))
     return -1
@@ -47,18 +69,20 @@ def createFolder(folderName, stackFolder, fromFile = False):
   
 # Function to open a directory
 def openDirectory(directory, stackFolder):
+  if directory == '.':
+    return
   normalPath = os.path.normpath(directory)
-  position = positionStackFolder(normalPath, stackFolder)
-  
-  for p in range(position):
+  count = positionStackFolder(normalPath, stackFolder)
+  # Unstack 'count' times the stack folder
+  for p in range(count):
     stackFolder.pop()
-
+  # Take the current folder
   currentFolder = stackFolder[-1]
   if directory[0] == '/':
     for path in range(1,stackFolder):
       stackFolder.pop()
     currentFolder = stackFolder[0]
-  
+  # Separete directories and stack
   listDirectorys = normalPath.split('/')
   for folder in listDirectorys:
     listItems = currentFolder.getItemsDict()
@@ -70,46 +94,31 @@ def openDirectory(directory, stackFolder):
         print('{}: No such file or directory'.format(folder))
         return -1
 
-# Class to represent a folder
-class Folder:
-  def __init__(self, folderName, folderPath, folderSize = 0, folderDict = {}):
-    self.folders = folderDict
-    self.name = folderName
-    self.path = folderPath
-    self.size = folderSize
+# Function to remove a folder
+def removeFolder(folderName, stackFolder):
+  normalPath = os.path.normpath(folderName)
+  current = stackFolder[-1]
+  name = normalPath
+  if '/' in normalPath:
+    index = normalPath.rfind('/')
+    current = currentFolder(normalPath[:index], stackFolder)
+    name = normalPath[index + 1:]
+  items = current.getItemsDict()
+  if name in items.keys():
+    if len(items[name].getItemsDict().keys()) == 0:
+      current.removeItem(name)
+    else:
+      print(name, ': Directory not empty')
+  else:
+    print('{}: No such file or directory'.format(name))
 
-  # Function to take the items list in this folder
-  def getItemsDict(self):
-    return self.folders
-
-  # Function to take the folder name
-  def getName(self):
-    return self.name
-  
-  # Function to take the folder path
-  def getPath(self):
-    return self.path
-
-  # Function to take the folder size
-  def getSize(self):
-    return self.size
-
-  # Function to insert a item in this folder
-  def insertItem(self, name, newItem):
-    self.folders[name] = newItem
-
-  # Function to remove a fitem of this folder
-  def removeFolder(self, itemPosition):
-    del self.folders[itemPosition]
-
-  # Function to change the folder name
-  def setName(self, newFolderName):
-    self.name = newFolderName
-  
-  # Function to change the folder path
-  def setPath(self, newFolderPath):
-    self.path = newFolderPath
-  
-  # Function to change the folder size
-  def setSize(self, newFolderSize):
-    self.size = newFolderSize
+# Function to rename a folder
+def renameFolder(newName, directory, stackFolder):
+  normalPath = os.path.normpath(directory)
+  index = normalPath.rfind('/')
+  current = stackFolder[-1]
+  if index != -1:
+    current = currentFolder(directory[:index], stackFolder)
+  items = current.getItemsDict()
+  items[directory[index + 1:]].setName(newName)
+  current.setItemName(directory[index + 1:], newName)

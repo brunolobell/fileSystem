@@ -72,8 +72,15 @@ class Block:
       self.blockList.append(data)
     return newSize
   
+  # Take the bocksList
   def getItems(self):
     return self.blockList
+
+  # Remove an item
+  def removeItem(self, obj):
+    index = self.blockList.index(obj)
+    del self.blockList[index]
+
 
 # Class to represent an inode
 class Inode:

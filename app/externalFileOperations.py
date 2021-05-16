@@ -2,7 +2,7 @@ import ast
 import os
 import pickle
 
-# write an object in the file (VirtualMemory)
+# write an object in the binary file (VirtualMemory)
 def writeExternalFile(obj):
   with open('service/VirtualMemory', 'wb') as output:
     fileDump = pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
